@@ -7,85 +7,98 @@ import { SearchBar } from '../../components/SearchBar';
 import { LoginDataItem } from '../../components/LoginDataItem';
 
 import {
-  Container,
-  Metadata,
-  Title,
-  TotalPassCount,
-  LoginList,
+	Container,
+	Metadata,
+	Title,
+	TotalPassCount,
+	LoginList,
 } from './styles';
 
 interface LoginDataProps {
-  id: string;
-  service_name: string;
-  email: string;
-  password: string;
+	id: string;
+	service_name: string;
+	email: string;
+	password: string;
 }
 
 type LoginListDataProps = LoginDataProps[];
 
 export function Home() {
-  const [searchText, setSearchText] = useState('');
-  const [searchListData, setSearchListData] = useState<LoginListDataProps>([]);
-  const [data, setData] = useState<LoginListDataProps>([]);
+	const [searchText, setSearchText] = useState('');
+	const [searchListData, setSearchListData] = useState<LoginListDataProps>([]);
+	const [data, setData] = useState<LoginListDataProps>([]);
 
-  async function loadData() {
-    const dataKey = '@savepass:logins';
-    // Get asyncStorage data, use setSearchListData and setData
-  }
+	async function loadData() {
+		const dataKey = '@savepass:logins';
 
-  function handleFilterLoginData() {
-    // Filter results inside data, save with setSearchListData
-  }
+		const responseData = await AsyncStorage.getItem(dataKey);
+		const listData = JSON.parse(responseData);
 
-  function handleChangeInputText(text: string) {
-    // Update searchText value
-  }
+		setSearchListData(listData);
+		setData(listData);
+	}
 
-  useFocusEffect(useCallback(() => {
-    loadData();
-  }, []));
+	function handleFilterLoginData() {
+		if (searchText) {
+			const listDataFiltred = data.filter((item) =>
+				item.service_name.includes(searchText)
+			);
 
-  return (
-    <>
-      <Header
-        user={{
-          name: 'Rocketseat',
-          avatar_url: 'https://i.ibb.co/ZmFHZDM/rocketseat.jpg'
-        }}
-      />
-      <Container>
-        <SearchBar
-          placeholder="Qual senha você procura?"
-          onChangeText={handleChangeInputText}
-          value={searchText}
-          returnKeyType="search"
-          onSubmitEditing={handleFilterLoginData}
+			setSearchListData(listDataFiltred);
+		}
+	}
 
-          onSearchButtonPress={handleFilterLoginData}
-        />
+	function handleChangeInputText(text: string) {
+		setSearchText(text);
+	}
 
-        <Metadata>
-          <Title>Suas senhas</Title>
-          <TotalPassCount>
-            {searchListData.length
-              ? `${`${searchListData.length}`.padStart(2, '0')} ao total`
-              : 'Nada a ser exibido'
-            }
-          </TotalPassCount>
-        </Metadata>
+	useFocusEffect(
+		useCallback(() => {
+			loadData();
+		}, [])
+	);
 
-        <LoginList
-          keyExtractor={(item) => item.id}
-          data={searchListData}
-          renderItem={({ item: loginData }) => {
-            return <LoginDataItem
-              service_name={loginData.service_name}
-              email={loginData.email}
-              password={loginData.password}
-            />
-          }}
-        />
-      </Container>
-    </>
-  )
+	return (
+		<>
+			<Header
+				user={{
+					name: 'Rocketseat',
+					avatar_url: 'https://i.ibb.co/ZmFHZDM/rocketseat.jpg',
+				}}
+			/>
+			<Container>
+				<SearchBar
+					placeholder="Qual senha você procura?"
+					onChangeText={handleChangeInputText}
+					value={searchText}
+					returnKeyType="search"
+					onSubmitEditing={handleFilterLoginData}
+					onSearchButtonPress={handleFilterLoginData}
+				/>
+
+				<Metadata>
+					<Title>Suas senhas</Title>
+					<TotalPassCount>
+						{searchListData.length
+							? `${`${searchListData.length}`.padStart(2, '0')} ao total`
+							: 'Nada a ser exibido'}
+					</TotalPassCount>
+				</Metadata>
+
+				<LoginList
+					keyExtractor={(item) => item.id}
+					data={searchListData}
+					renderItem={({ item: loginData }) => {
+						return (
+							<LoginDataItem
+								service_name={loginData.service_name}
+								email={loginData.email}
+								password={loginData.password}
+							/>
+						);
+					}}
+				/>
+			</Container>
+		</>
+	);
 }
